@@ -23,7 +23,7 @@ apply plugin: 'com.android.library'
 
 android {
     if (project.android.hasProperty("namespace")) {
-        namespace 'com.jortdebokx.flutterbarcodescanner'
+        namespace 'com.amolg.flutterbarcodescanner'
     }
     compileSdkVersion 30
 
