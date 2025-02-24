@@ -65,19 +65,6 @@ public class FlutterBarcodeScannerPlugin
     public FlutterBarcodeScannerPlugin() {
     }
 
-    public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
-        channel = new MethodChannel(binding.getBinaryMessenger(), "flutter_barcode_scanner");
-        channel.setMethodCallHandler(new FlutterBarcodeScannerPlugin());
-    }
-
-    @Override
-    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
-        if (channel != null) {
-            channel.setMethodCallHandler(null);
-            channel = null;
-        }
-    }
-
     @Override
     public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
         try {
@@ -198,11 +185,17 @@ public class FlutterBarcodeScannerPlugin
     @Override
     public void onAttachedToEngine(FlutterPluginBinding binding) {
         pluginBinding = binding;
+        channel = new MethodChannel(binding.getBinaryMessenger(), "flutter_barcode_scanner");
+        channel.setMethodCallHandler(new FlutterBarcodeScannerPlugin());
     }
 
     @Override
     public void onDetachedFromEngine(FlutterPluginBinding binding) {
         pluginBinding = null;
+        if (channel != null) {
+            channel.setMethodCallHandler(null);
+            channel = null;
+        }
     }
 
     @Override
