@@ -30,11 +30,11 @@ import io.flutter.plugin.common.PluginRegistry.ActivityResultListener;
 import io.flutter.plugin.common.EventChannel.StreamHandler;
 import io.flutter.embedding.engine.plugins.lifecycle.FlutterLifecycleAdapter;
 
-
 /**
  * FlutterBarcodeScannerPlugin
  */
-public class FlutterBarcodeScannerPlugin implements MethodCallHandler, ActivityResultListener, StreamHandler, FlutterPlugin, ActivityAware {
+public class FlutterBarcodeScannerPlugin
+        implements MethodCallHandler, ActivityResultListener, StreamHandler, FlutterPlugin, ActivityAware {
     private static final String CHANNEL = "flutter_barcode_scanner";
 
     private static Activity activity;
@@ -53,7 +53,6 @@ public class FlutterBarcodeScannerPlugin implements MethodCallHandler, ActivityR
      * V2 embedding
      *
      * @param activity
-     * @param registrar
      */
     private MethodChannel channel;
     private FlutterPluginBinding pluginBinding;
@@ -66,24 +65,17 @@ public class FlutterBarcodeScannerPlugin implements MethodCallHandler, ActivityR
     public FlutterBarcodeScannerPlugin() {
     }
 
-    private FlutterBarcodeScannerPlugin(Activity activity, final PluginRegistry.Registrar registrar) {
-        FlutterBarcodeScannerPlugin.activity = activity;
+    public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
+        channel = new MethodChannel(binding.getBinaryMessenger(), "flutter_barcode_scanner");
+        channel.setMethodCallHandler(new FlutterBarcodeScannerPlugin());
     }
 
-    /**
-     * Plugin registration.
-     */
-    public static void registerWith(final PluginRegistry.Registrar registrar) {
-        if (registrar.activity() == null) {
-            return;
+    @Override
+    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+        if (channel != null) {
+            channel.setMethodCallHandler(null);
+            channel = null;
         }
-        Activity activity = registrar.activity();
-        Application applicationContext = null;
-        if (registrar.context() != null) {
-            applicationContext = (Application) (registrar.context().getApplicationContext());
-        }
-        FlutterBarcodeScannerPlugin instance = new FlutterBarcodeScannerPlugin(registrar.activity(), registrar);
-        instance.createPluginSetup(registrar.messenger(), applicationContext, activity, registrar, null);
     }
 
     @Override
@@ -133,7 +125,6 @@ public class FlutterBarcodeScannerPlugin implements MethodCallHandler, ActivityR
         }
     }
 
-
     /**
      * Get the barcode scanning results in onActivityResult
      *
@@ -166,7 +157,6 @@ public class FlutterBarcodeScannerPlugin implements MethodCallHandler, ActivityR
         }
         return false;
     }
-
 
     @Override
     public void onListen(Object o, EventChannel.EventSink eventSink) {
@@ -232,39 +222,26 @@ public class FlutterBarcodeScannerPlugin implements MethodCallHandler, ActivityR
      * @param messenger
      * @param applicationContext
      * @param activity
-     * @param registrar
      * @param activityBinding
      */
     private void createPluginSetup(
             final BinaryMessenger messenger,
             final Application applicationContext,
             final Activity activity,
-            final PluginRegistry.Registrar registrar,
             final ActivityPluginBinding activityBinding) {
 
-
-        this.activity =  activity;
-        eventChannel =
-                new EventChannel(messenger, "flutter_barcode_scanner_receiver");
+        this.activity = activity;
+        eventChannel = new EventChannel(messenger, "flutter_barcode_scanner_receiver");
         eventChannel.setStreamHandler(this);
-
 
         this.applicationContext = applicationContext;
         channel = new MethodChannel(messenger, CHANNEL);
         channel.setMethodCallHandler(this);
-        if (registrar != null) {
-            // V1 embedding setup for activity listeners.
-            observer = new LifeCycleObserver(activity);
-            applicationContext.registerActivityLifecycleCallbacks(
-                    observer); // Use getApplicationContext() to avoid casting failures.
-            registrar.addActivityResultListener(this);
-        } else {
-            // V2 embedding setup for activity listeners.
-            activityBinding.addActivityResultListener(this);
-            lifecycle = FlutterLifecycleAdapter.getActivityLifecycle(activityBinding);
-            observer = new LifeCycleObserver(activity);
-            lifecycle.addObserver(observer);
-        }
+        // V2 embedding setup for activity listeners.
+        activityBinding.addActivityResultListener(this);
+        lifecycle = FlutterLifecycleAdapter.getActivityLifecycle(activityBinding);
+        observer = new LifeCycleObserver(activity);
+        lifecycle.addObserver(observer);
     }
 
     @Override
