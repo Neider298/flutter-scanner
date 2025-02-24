@@ -244,7 +244,6 @@ public class FlutterBarcodeScannerPlugin
                 pluginBinding.getBinaryMessenger(),
                 (Application) pluginBinding.getApplicationContext(),
                 activityBinding.getActivity(),
-                null,
                 activityBinding);
     }
 
